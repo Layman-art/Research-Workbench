@@ -10,7 +10,7 @@
 
 ## 本地开发
 
-环境要求：Node.js 20.19+，或 Node.js 22.12+。
+环境要求：Node.js 22.13–22.x、pnpm 11、Rust stable 与 Xcode Command Line Tools。
 
 ```bash
 npm ci

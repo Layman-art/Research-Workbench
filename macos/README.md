@@ -146,7 +146,7 @@ JSON 备份需要手动导出。当前版本不提供自动备份、跨设备同
 
 ## 本地开发
 
-环境要求：Apple Silicon Mac、Node.js 22.12–22.x、pnpm 11、Rust stable 与 Xcode Command Line Tools。
+环境要求：Apple Silicon Mac、Node.js 22.13–22.x、pnpm 11、Rust stable 与 Xcode Command Line Tools。
 
 ```bash
 git clone https://github.com/Layman-art/Research-Workbench.git

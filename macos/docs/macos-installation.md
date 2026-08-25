@@ -19,7 +19,7 @@ Research Workbench 当前面向 Apple Silicon Mac（M1/M2/M3/M4 系列），使�
 - Apple Silicon Mac
 - Xcode Command Line Tools：`xcode-select --install`
 - Rust stable
-- Node.js 22.12–22.x
+- Node.js 22.13–22.x
 - pnpm 11
 
 ```bash
