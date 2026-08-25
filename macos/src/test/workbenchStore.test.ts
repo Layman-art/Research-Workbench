@@ -98,6 +98,38 @@ describe('createWorkbenchStore', () => {
     expect((await repository.loadSnapshot()).records).toEqual(before.records);
   });
 
+  it('imports a Windows v1 backup without losing macOS-only built-ins or settings', async () => {
+    const repository = new InMemoryWorkbenchRepository(snapshot());
+    const store = createWorkbenchStore(repository);
+    await store.getState().hydrate();
+    const current = store.getState().exportData();
+    const settingsBefore = store.getState().settings;
+    const legacyRecords = current.records
+      .filter((record) => record.typeId !== 'literature')
+      .map((record) => Object.fromEntries(
+        Object.entries(record).filter(([key]) => !['projectId', 'recurrence', 'literature'].includes(key)),
+      ));
+    const legacyTypes = current.types.filter((type) => type.id !== 'literature');
+
+    const result = await store.getState().importData({
+      app: 'research-workbench',
+      version: 1,
+      exportedAt: current.exportedAt,
+      records: legacyRecords,
+      types: legacyTypes,
+      workspaces: current.workspaces,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(store.getState().records).not.toHaveLength(0);
+    expect(store.getState().records.every((record) => (
+      record.projectId === null && record.recurrence === null && record.literature === null
+    ))).toBe(true);
+    expect(store.getState().types.some((type) => type.id === 'literature')).toBe(true);
+    expect(store.getState().settings).toEqual(settingsBefore);
+    expect((await repository.loadSnapshot()).records).toEqual(store.getState().records);
+  });
+
   it('persists desktop settings before exposing them to the UI', async () => {
     const repository = new InMemoryWorkbenchRepository(snapshot());
     const store = createWorkbenchStore(repository);

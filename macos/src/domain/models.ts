@@ -91,9 +91,10 @@ export interface WorkbenchSnapshot {
 
 export interface ExportPayload {
   app: 'research-workbench';
-  version: 1;
+  version: 2;
   exportedAt: string;
   records: RecordItem[];
   types: TypeDef[];
   workspaces: Workspace[];
+  settings: AppSettings;
 }

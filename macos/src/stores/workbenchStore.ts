@@ -544,14 +544,19 @@ export function createWorkbenchStore(repository: WorkbenchRepository) {
 
       setDisplayName: async (name) => get().updateSettings({ displayName: name.trim() }),
 
-      exportData: () => ({
-        app: 'research-workbench',
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        records: get().records,
-        types: get().types,
-        workspaces: get().workspaces,
-      }),
+      exportData: () => {
+        const current = get();
+        if (!current.settings) throw new Error('应用尚未完成初始化');
+        return {
+          app: 'research-workbench',
+          version: 2,
+          exportedAt: new Date().toISOString(),
+          records: current.records,
+          types: current.types,
+          workspaces: current.workspaces,
+          settings: current.settings,
+        };
+      },
 
       importData: async (payload) => {
         if (
@@ -564,11 +569,30 @@ export function createWorkbenchStore(repository: WorkbenchRepository) {
         if (!Array.isArray(payload.records) || !Array.isArray(payload.types) || !Array.isArray(payload.workspaces)) {
           return { ok: false, error: '缺少 records / types / workspaces 字段' };
         }
-        if (!payload.records.every(isRecord)) return { ok: false, error: '记录格式不正确' };
-        if (!payload.types.every(isTypeDef) || !payload.workspaces.every(isWorkspace)) {
+        const records = payload.version === 1
+          ? payload.records.map((record) => {
+              if (!isObject(record)) return record;
+              return {
+                ...record,
+                ...(!('projectId' in record) ? { projectId: null } : {}),
+                ...(!('recurrence' in record) ? { recurrence: null } : {}),
+                ...(!('literature' in record) ? { literature: null } : {}),
+              };
+            })
+          : payload.records;
+        const types = payload.version === 1
+          ? [
+              ...payload.types,
+              ...(!payload.types.some((type) => isObject(type) && type.id === 'literature')
+                ? BUILTIN_TYPES.filter((type) => type.id === 'literature').map((type) => ({ ...type }))
+                : []),
+            ]
+          : payload.types;
+        if (!records.every(isRecord)) return { ok: false, error: '记录格式不正确' };
+        if (!types.every(isTypeDef) || !payload.workspaces.every(isWorkspace)) {
           return { ok: false, error: '类型或工作区格式不正确' };
         }
-        if (payload.types.length === 0 || payload.workspaces.length === 0) {
+        if (types.length === 0 || payload.workspaces.length === 0) {
           return { ok: false, error: '类型与工作区不能为空' };
         }
         let importedSettings: AppSettings | undefined;
@@ -576,14 +600,14 @@ export function createWorkbenchStore(repository: WorkbenchRepository) {
           if (!isAppSettings(payload.settings)) return { ok: false, error: '设置格式不正确' };
           importedSettings = payload.settings;
         }
-        if (!hasUniqueIds(payload.records) || !hasUniqueIds(payload.types) || !hasUniqueIds(payload.workspaces)) {
+        if (!hasUniqueIds(records) || !hasUniqueIds(types) || !hasUniqueIds(payload.workspaces)) {
           return { ok: false, error: '备份中存在重复 ID' };
         }
-        const typeIds = new Set(payload.types.map((type) => type.id));
+        const typeIds = new Set(types.map((type) => type.id));
         const workspaceIds = new Set(payload.workspaces.map((workspace) => workspace.id));
-        const recordIds = new Set(payload.records.map((record) => record.id));
+        const recordIds = new Set(records.map((record) => record.id));
         if (
-          !payload.records.every(
+          !records.every(
             (record) =>
               typeIds.has(record.typeId) &&
               workspaceIds.has(record.workspaceId) &&
@@ -594,8 +618,8 @@ export function createWorkbenchStore(repository: WorkbenchRepository) {
         }
         await replaceSnapshot(
           snapshotOf(get(), {
-            records: payload.records,
-            types: payload.types,
+            records,
+            types,
             workspaces: payload.workspaces,
             ...(importedSettings ? { settings: importedSettings } : {}),
           }),

@@ -203,6 +203,7 @@ describe('SqliteWorkbenchRepository', () => {
     const repository = new SqliteWorkbenchRepository(executor, initialSnapshot);
     await repository.initialize();
     const originals = (await repository.loadSnapshot()).records.slice(0, 2);
+    executor.forbidSelectInsideTransaction = true;
     await repository.updateRecords(originals.map((record) => record.id), { archived: true });
     expect((await repository.loadSnapshot()).records.filter((record) => originals.some((item) => item.id === record.id)).every((record) => record.archived)).toBe(true);
 

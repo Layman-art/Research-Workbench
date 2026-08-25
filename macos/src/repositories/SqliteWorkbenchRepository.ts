@@ -428,40 +428,40 @@ export class SqliteWorkbenchRepository implements WorkbenchRepository {
   async updateRecords(ids: string[], patch: BatchRecordPatch): Promise<RecordItem[]> {
     const uniqueIds = [...new Set(ids)];
     if (uniqueIds.length === 0) return [];
-    return this.executor.transaction(async (transaction) => {
-      if (patch.workspaceId) {
-        const [{ count = 0 } = {}] = await transaction.select<{ count: number }>(
-          'SELECT COUNT(*) AS count FROM workspaces WHERE id = ?', [patch.workspaceId],
-        );
-        if (Number(count) !== 1) throw new Error('目标工作区不存在');
-      }
-      if (patch.projectId) {
-        const project = await readRecord(transaction, patch.projectId);
-        if (!project) throw new Error('目标项目不存在');
-      }
-      const records: RecordItem[] = [];
-      for (const id of uniqueIds) {
-        const record = await readRecord(transaction, id);
-        if (!record) throw new Error('部分记录不存在');
-        records.push(record);
-      }
-      const updatedAt = Date.now();
-      const updated = records.map((record) => ({ ...record, ...patch, updatedAt }));
+    if (patch.workspaceId) {
+      const [{ count = 0 } = {}] = await this.executor.select<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM workspaces WHERE id = ?', [patch.workspaceId],
+      );
+      if (Number(count) !== 1) throw new Error('目标工作区不存在');
+    }
+    if (patch.projectId) {
+      const project = await readRecord(this.executor, patch.projectId);
+      if (!project) throw new Error('目标项目不存在');
+    }
+    const records: RecordItem[] = [];
+    for (const id of uniqueIds) {
+      const record = await readRecord(this.executor, id);
+      if (!record) throw new Error('部分记录不存在');
+      records.push(record);
+    }
+    const updatedAt = Date.now();
+    const updated = records.map((record) => ({ ...record, ...patch, updatedAt }));
+    await this.executor.transaction(async (transaction) => {
       for (const record of updated) await writeRecord(transaction, record);
-      return updated;
     });
+    return updated;
   }
 
   async deleteRecords(ids: string[]): Promise<void> {
     const uniqueIds = [...new Set(ids)];
     if (uniqueIds.length === 0) return;
+    for (const id of uniqueIds) {
+      const [{ count = 0 } = {}] = await this.executor.select<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM records WHERE id = ?', [id],
+      );
+      if (Number(count) !== 1) throw new Error('部分记录不存在');
+    }
     await this.executor.transaction(async (transaction) => {
-      for (const id of uniqueIds) {
-        const [{ count = 0 } = {}] = await transaction.select<{ count: number }>(
-          'SELECT COUNT(*) AS count FROM records WHERE id = ?', [id],
-        );
-        if (Number(count) !== 1) throw new Error('部分记录不存在');
-      }
       for (const id of uniqueIds) await transaction.execute('DELETE FROM records WHERE id = ?', [id]);
     });
   }
