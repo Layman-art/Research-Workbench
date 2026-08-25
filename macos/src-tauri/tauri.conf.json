@@ -1,0 +1,44 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Research Workbench",
+  "version": "1.0.11",
+  "identifier": "com.researchworkbench.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build",
+    "devUrl": "http://localhost:1430",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Research Workbench",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "icon": ["icons/icon.icns"],
+    "category": "Productivity",
+    "shortDescription": "Local-first research task and graduate life workbench",
+    "longDescription": "A local-first workbench for research projects, tasks, schedules, and notes.",
+    "macOS": {
+      "signingIdentity": "-",
+      "hardenedRuntime": false
+    }
+  }
+}
