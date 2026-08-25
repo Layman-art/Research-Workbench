@@ -1,0 +1,148 @@
+.markdown-body {
+  color: var(--ink-soft);
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  text-autospace: normal;
+}
+
+.markdown-body > :first-child { margin-top: 0; }
+.markdown-body > :last-child { margin-bottom: 0; }
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  color: var(--ink);
+  line-height: 1.35;
+  margin: 1.2em 0 0.55em;
+}
+.markdown-body h1 { font-size: 1.45em; }
+.markdown-body h2 { font-size: 1.25em; }
+.markdown-body h3 { font-size: 1.1em; }
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body blockquote { margin: 0.65em 0; }
+.markdown-body ul,
+.markdown-body ol { padding-left: 1.55em; }
+.markdown-body a { color: var(--accent-deep); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.markdown-body blockquote {
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+  margin-left: 0;
+  padding-left: 1em;
+}
+.markdown-body code {
+  border-radius: 4px;
+  background: var(--paper-deep);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 0.9em;
+  padding: 0.12em 0.35em;
+}
+.markdown-body pre {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--night);
+  color: var(--cream);
+  padding: 14px 16px;
+}
+.markdown-body pre code { background: transparent; color: inherit; padding: 0; }
+.markdown-body table { border-collapse: collapse; width: 100%; }
+.markdown-body th,
+.markdown-body td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; }
+.markdown-body img { max-width: 100%; }
+
+.direction-markdown {
+  line-height: 1.65;
+  max-height: 11.2em;
+  overflow: hidden;
+  position: relative;
+}
+.direction-markdown p,
+.direction-markdown ul,
+.direction-markdown ol {
+  margin: 0.4em 0;
+}
+/* 折叠处柔和渐隐提示还有更多内容 */
+.direction-markdown::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.4em;
+  background: linear-gradient(to bottom, transparent, var(--surface));
+  pointer-events: none;
+}
+
+.markdown-mode {
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: 7px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper-deep);
+  padding: 2px;
+}
+.markdown-mode button {
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 3px 12px;
+}
+.markdown-mode button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(28, 26, 22, 0.1);
+}
+.markdown-source { min-height: 220px; }
+
+/* 分栏模式：左编辑右预览，编辑时实时同步渲染 */
+.markdown-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+.markdown-split .markdown-source,
+.markdown-split .markdown-preview {
+  min-height: 260px;
+}
+.markdown-split .markdown-source {
+  resize: vertical;
+}
+.markdown-split .markdown-preview {
+  overflow-y: auto;
+  max-height: 520px;
+}
+@media (max-width: 720px) {
+  .markdown-split { grid-template-columns: 1fr; }
+}
+.markdown-preview {
+  min-height: 220px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 14px 16px;
+}
+.markdown-empty {
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+}
+
+.draft-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--ink-soft);
+  padding: 10px 12px;
+}
+.draft-notice > div { display: flex; gap: 6px; flex: none; }
+.draft-notice-warning {
+  border-color: color-mix(in srgb, var(--vermillion) 45%, var(--line));
+  background: color-mix(in srgb, var(--vermillion) 7%, var(--surface));
+}

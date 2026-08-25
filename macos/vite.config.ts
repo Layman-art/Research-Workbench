@@ -10,5 +10,5 @@ export default defineConfig({
   base: './',
   clearScreen: false,
   server: { port: 1430, strictPort: true },
-  test: { environment: 'jsdom', setupFiles: [fileURLToPath(new URL('./src/test/setup.ts', import.meta.url))], exclude: ['src/test/e2e/**','macos/**','node_modules/**','dist/**'], css: true },
+  test: { environment: 'jsdom', setupFiles: [fileURLToPath(new URL('./src/test/setup.ts', import.meta.url))], exclude: ['src/test/e2e/**','node_modules/**','dist/**'], css: true },
 });

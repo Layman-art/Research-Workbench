@@ -4,12 +4,13 @@
   <h1>Research Workbench · 科研工作台</h1>
 
   <p><strong>一张桌面，接住科研中的项目、方向、待办与日程。</strong></p>
-  <p>A local-first Windows desktop organizer for research projects, directions, tasks, schedules, and notes.</p>
+  <p>A local-first Windows and macOS desktop organizer for research projects, directions, tasks, schedules, and notes.</p>
 
   <p>
     <a href="https://github.com/Layman-art/Research-Workbench/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/Layman-art/Research-Workbench?display_name=tag&style=flat-square&color=D9A441"></a>
     <a href="https://github.com/Layman-art/Research-Workbench/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Layman-art/Research-Workbench/ci.yml?branch=main&style=flat-square&label=checks"></a>
     <img alt="Windows x64" src="https://img.shields.io/badge/platform-Windows%20x64-0078D4?style=flat-square&logo=windows11&logoColor=white">
+    <img alt="macOS arm64" src="https://img.shields.io/badge/platform-macOS%20arm64-8E8E93?style=flat-square&logo=apple&logoColor=white">
     <img alt="Local first" src="https://img.shields.io/badge/data-local--first-6B705C?style=flat-square">
     <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-2F6F6D?style=flat-square"></a>
     <a href="https://github.com/Layman-art/Research-Workbench/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Layman-art/Research-Workbench/total?style=flat-square&label=downloads"></a>
@@ -17,6 +18,7 @@
 
   <p>
     <a href="https://github.com/Layman-art/Research-Workbench/releases/latest"><img alt="下载 Windows x64 安装版" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_Windows_x64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge&logo=windows11&logoColor=white"></a>
+    <a href="https://github.com/Layman-art/Research-Workbench/releases/download/release/Research-Workbench-macOS-arm64.dmg"><img alt="下载 macOS arm64 安装版" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_macOS_arm64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge&logo=apple&logoColor=white"></a>
   </p>
 
   <p>
@@ -107,6 +109,8 @@ Research Workbench 不试图替代文献管理器、实验平台或文件系统�
 3. 首次启动会载入一组可编辑的科研示例数据，可以先用它熟悉项目、待办与日程。
 4. 正式使用后，建议定期在「设置与数据 → 数据管理」中导出 JSON 备份。
 
+macOS（Apple Silicon）用户可在同一 [Release](https://github.com/Layman-art/Research-Workbench/releases/tag/release) 下载 `Research-Workbench-macOS-arm64.dmg`，打开后将应用拖入「应用程序」文件夹。首次启动与源码构建说明见 [`macos/README.md`](./macos/README.md)。
+
 默认情况下，关闭主窗口后应用仍会驻留系统托盘。需要彻底退出时，可右键托盘图标选择「退出」，也可以在设置中关闭后台运行。
 
 > [!IMPORTANT]
@@ -120,14 +124,14 @@ Get-FileHash .\Research-Workbench-Setup-release-x64.exe -Algorithm SHA256
 
 ## 数据与隐私
 
-Research Workbench 当前没有账号系统或云同步。项目、记录、内容类型、工作区和显示名保存在应用本机存储中；开机自启与托盘设置保存在 Electron 的用户数据目录。
+Research Workbench 当前没有账号系统或云同步。项目、记录、内容类型、工作区和显示名保存在应用本机存储中；Windows 使用 Electron 用户数据目录，macOS 使用应用数据目录中的 SQLite 数据库。
 
 JSON 备份需要手动导出。当前版本不提供自动备份、跨设备同步或应用层加密，因此换机、重装或处理重要数据前，请先导出备份。
 
 <details>
 <summary><strong>当前版本的能力边界</strong></summary>
 
-- 仅提供 Windows x64 发行版。
+- 提供 Windows x64 与 macOS Apple Silicon 发行版。
 - 面向单机、单用户场景，不含云同步和实时协作。
 - 「文件资料」用于记录文件位置和说明，不托管文件本体。
 - 正文为纯文本记录，不是富文本或 Markdown 编辑器。
@@ -167,6 +171,8 @@ npm run build
 npm run dist
 ```
 
+macOS 源码、开发环境与构建命令见 [`macos/README.md`](./macos/README.md)。
+
 ## 技术栈
 
 - Electron + electron-builder
@@ -179,6 +185,7 @@ npm run dist
 ```text
 electron/          Electron 主进程与安全预加载桥
 src/               React + TypeScript 应用源码
+macos/             Tauri 2 + SQLite 的 macOS 独立源码
 src/components/    总览、记录、待办、日程、编辑器与设置
 src/test/          单元测试与端到端测试
 scripts/           应用图标生成脚本
@@ -192,7 +199,7 @@ licenses/          随发行版分发的第三方许可证文本
 
 ## 开源许可证
 
-Research Workbench 采用 [MIT License](./LICENSE) 开源。第三方组件的许可证与版权说明见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
+Research Workbench 采用 [MIT License](./LICENSE) 开源。Windows 第三方组件说明见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)，macOS 说明见 [`macos/THIRD_PARTY_NOTICES.md`](./macos/THIRD_PARTY_NOTICES.md)。
 
 ## 更新日志
 
