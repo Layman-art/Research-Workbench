@@ -33,6 +33,12 @@
     "active": true,
     "targets": ["app", "dmg"],
     "icon": ["icons/icon.icns"],
+    "resources": [
+      "../LICENSE",
+      "../PRIVACY.md",
+      "../THIRD_PARTY_NOTICES.md",
+      "../licenses/*"
+    ],
     "category": "Productivity",
     "shortDescription": "Local-first research task and graduate life workbench",
     "longDescription": "A local-first workbench for research projects, tasks, schedules, and notes.",

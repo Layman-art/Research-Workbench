@@ -1,6 +1,6 @@
 # 第三方软件声明
 
-Research Workbench 使用以下主要开源组件。完整依赖版本记录在 `package-lock.json` 中；直接运行组件的原始许可证文本保存在 [`licenses/`](./licenses/) 中，并随桌面发行版分发。
+Research Workbench macOS 版使用以下主要开源组件。前端与 Rust 的完整依赖版本分别记录在 `pnpm-lock.yaml` 和 `src-tauri/Cargo.lock` 中；主要运行时组件的许可证文本保存在 [`licenses/`](./licenses/) 中，并随桌面发行版分发。
 
 | 组件 | 版本 | 用途 | 许可证文本 |
 | --- | --- | --- | --- |
@@ -11,9 +11,9 @@ Research Workbench 使用以下主要开源组件。完整依赖版本记录在 
 | Lucide React | 0.468.0 | 界面图标 | [ISC](./licenses/lucide-react.txt) |
 | Inter | 5.3.0 | 西文字体 | [SIL Open Font License 1.1](./licenses/inter-OFL.txt) |
 | Source Serif 4 | 5.3.0 | 西文衬线字体 | [SIL Open Font License 1.1](./licenses/source-serif-4-OFL.txt) |
-| Noto Serif SC | 5.3.0 | 简体中文衬线字体 | [SIL Open Font License 1.1](./licenses/noto-serif-sc-OFL.txt) |
-| Electron | 43.4.0 | Windows 桌面运行时 | [MIT](./licenses/electron.txt)，并包含 Chromium、Node.js 等第三方组件 |
+| Tauri 2 与官方插件 | 2.x | macOS 桌面运行时、窗口与系统集成 | [MIT](./licenses/tauri-and-plugins.txt) |
+| SQLx | 0.8.x | SQLite 数据访问 | [MIT](./licenses/sqlx.txt) |
 
-Electron 构建产物还自带 `LICENSE.electron.txt` 和 `LICENSES.chromium.html`。构建与测试使用 TypeScript、Vite、Vitest、Playwright、ESLint 和 electron-builder；它们适用各自的软件许可证。
+其他直接与间接依赖包括 Tauri plugins、React Markdown、Remark/Rehype、dnd-kit、TypeScript、Vite、Vitest、Playwright 与 ESLint；其精确版本和依赖关系以锁文件为准，并适用各自的开源许可证。
 
 本项目的许可证不改变上述第三方组件各自的许可证和版权归属。

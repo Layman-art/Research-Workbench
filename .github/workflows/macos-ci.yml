@@ -1,0 +1,118 @@
+name: macOS checks and package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "macos/**"
+      - ".github/workflows/macos-ci.yml"
+  pull_request:
+    paths:
+      - "macos/**"
+      - ".github/workflows/macos-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-and-package:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: macos
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.1.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+          cache-dependency-path: macos/pnpm-lock.yaml
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: aarch64-apple-darwin
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint frontend
+        run: pnpm lint
+
+      - name: Run frontend unit tests
+        run: pnpm test
+
+      - name: Build frontend
+        run: pnpm build
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+
+      - name: Run Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Run Rust clippy
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install chromium
+
+      - name: Run end-to-end tests
+        run: pnpm test:e2e
+
+      - name: Build Apple Silicon DMG
+        run: pnpm tauri build --bundles dmg --target aarch64-apple-darwin
+
+      - name: Verify and normalize DMG
+        shell: bash
+        run: |
+          set -euo pipefail
+          images=$(find src-tauri/target/aarch64-apple-darwin/release/bundle/dmg -type f -name '*.dmg')
+          image_count=$(printf '%s\n' "$images" | sed '/^$/d' | wc -l | tr -d ' ')
+          test "$image_count" -eq 1
+
+          output="$RUNNER_TEMP/Research-Workbench-macOS-arm64.dmg"
+          cp "$images" "$output"
+          hdiutil verify "$output"
+
+          mountpoint="$RUNNER_TEMP/research-workbench-dmg"
+          mkdir -p "$mountpoint"
+          hdiutil attach "$output" -mountpoint "$mountpoint" -nobrowse -readonly
+          trap 'hdiutil detach "$mountpoint" >/dev/null 2>&1 || true' EXIT
+
+          apps=$(find "$mountpoint" -maxdepth 1 -type d -name '*.app')
+          app_count=$(printf '%s\n' "$apps" | sed '/^$/d' | wc -l | tr -d ' ')
+          test "$app_count" -eq 1
+          app="$apps"
+          identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Contents/Info.plist")
+          executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")
+          test "$identifier" = "com.researchworkbench.desktop"
+          test -x "$app/Contents/MacOS/$executable"
+          codesign --verify --deep --strict "$app"
+          lipo -archs "$app/Contents/MacOS/$executable" | grep -qw arm64
+
+          hdiutil detach "$mountpoint"
+          trap - EXIT
+          shasum -a 256 "$output" | tee "$RUNNER_TEMP/Research-Workbench-macOS-arm64.sha256"
+
+      - name: Upload verified macOS package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Research-Workbench-macOS-arm64
+          path: |
+            ${{ runner.temp }}/Research-Workbench-macOS-arm64.dmg
+            ${{ runner.temp }}/Research-Workbench-macOS-arm64.sha256
+          if-no-files-found: error
+          retention-days: 14

@@ -8,14 +8,14 @@
 
 A local-first macOS desktop organizer for research projects, directions, tasks, schedules, and notes.
 
-<a href="https://github.com/Zhong0118/Research-Workbench/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/Zhong0118/Research-Workbench?display_name=tag&style=flat-square&color=D9A441"></a>
-<a href="https://github.com/Zhong0118/Research-Workbench/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Zhong0118/Research-Workbench/ci.yml?branch=macos-support&style=flat-square&label=checks"></a>
+<a href="https://github.com/Layman-art/Research-Workbench/releases/tag/release"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/Layman-art/Research-Workbench?display_name=tag&style=flat-square&color=D9A441"></a>
+<a href="https://github.com/Layman-art/Research-Workbench/actions/workflows/macos-ci.yml"><img alt="macOS CI" src="https://img.shields.io/github/actions/workflow/status/Layman-art/Research-Workbench/macos-ci.yml?branch=main&style=flat-square&label=macOS%20checks"></a>
 <img alt="macOS arm64" src="https://img.shields.io/badge/platform-macOS%20arm64-8E8E93?style=flat-square&logo=apple&logoColor=white">
 <img alt="Local first" src="https://img.shields.io/badge/data-local--first-6B705C?style=flat-square">
 <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-2F6F6D?style=flat-square"></a>
-<a href="https://github.com/Zhong0118/Research-Workbench/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Zhong0118/Research-Workbench/total?style=flat-square&label=downloads"></a>
+<a href="https://github.com/Layman-art/Research-Workbench/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Layman-art/Research-Workbench/total?style=flat-square&label=downloads"></a>
 
-<a href="https://github.com/Zhong0118/Research-Workbench/releases/latest"><img alt="下载 macOS arm64 镜像" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_macOS_arm64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge&logo=apple&logoColor=white"></a>
+<a href="https://github.com/Layman-art/Research-Workbench/releases/download/release/Research-Workbench-macOS-arm64.dmg"><img alt="下载 macOS arm64 镜像" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_macOS_arm64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge&logo=apple&logoColor=white"></a>
 
 <a href="#快速开始">快速开始</a> ·
 <a href="#功能一览">功能一览</a> ·
@@ -25,7 +25,7 @@ A local-first macOS desktop organizer for research projects, directions, tasks, 
 
 </div>
 
-> 这是 [Zhong0118](https://github.com/Zhong0118) 对 [Layman-art/Research-Workbench](https://github.com/Layman-art/Research-Workbench) 的 **macOS 适配 fork**：将原项目的 Electron/Windows 实现迁移至 Tauri 2，面向 Apple Silicon 构建原生 macOS 应用，并完善了科研方向、项目、待办、日程、文献等研究工作流。预构建安装包见 [Releases](https://github.com/Zhong0118/Research-Workbench/releases/latest)。
+> 这是 Research Workbench 的 macOS 实现，源自 [Zhong0118](https://github.com/Zhong0118) 提交的 [PR #1](https://github.com/Layman-art/Research-Workbench/pull/1)。Windows 源码保留在仓库根目录，macOS 源码独立维护在 `macos/`；两个平台的安装包统一发布在官方 [Release](https://github.com/Layman-art/Research-Workbench/releases/tag/release)。
 
 <p align="center">
   <img src="./docs/assets/dashboard.png" width="100%" alt="Research Workbench 工作台总览">
@@ -112,7 +112,7 @@ Research Workbench 不试图替代文献管理器、实验平台或文件系统�
 
 ## 快速开始
 
-1. 从 [GitHub Releases](https://github.com/Zhong0118/Research-Workbench/releases/latest) 下载 `Research Workbench_1.0.11_aarch64.dmg`。
+1. 从 [GitHub Releases](https://github.com/Layman-art/Research-Workbench/releases/tag/release) 下载 `Research-Workbench-macOS-arm64.dmg`。
 2. 双击打开磁盘映像，把 `Research Workbench.app` 拖入「应用程序」文件夹。普通用户无需安装 Node.js。
 3. 首次启动会载入一组可编辑的科研示例数据，可以先用它熟悉项目、待办与日程。
 4. 正式使用后，建议定期在「设置与数据 → 数据管理」中导出 JSON 备份。
@@ -125,7 +125,7 @@ Research Workbench 不试图替代文献管理器、实验平台或文件系统�
 在终端中校验安装包：
 
 ```bash
-shasum -a 256 Research\ Workbench_1.0.11_aarch64.dmg
+shasum -a 256 Research-Workbench-macOS-arm64.dmg
 ```
 
 ## 数据与隐私
@@ -149,8 +149,8 @@ JSON 备份需要手动导出。当前版本不提供自动备份、跨设备同
 环境要求：Apple Silicon Mac、Node.js 22.12–22.x、pnpm 11、Rust stable 与 Xcode Command Line Tools。
 
 ```bash
-git clone https://github.com/Zhong0118/Research-Workbench.git
-cd Research-Workbench
+git clone https://github.com/Layman-art/Research-Workbench.git
+cd Research-Workbench/macos
 pnpm install
 pnpm dev:desktop
 ```
@@ -198,7 +198,7 @@ licenses/          随发行版分发的第三方许可证文本
 
 ## 参与贡献
 
-欢迎提交 Issue 或 Pull Request。本项目是 [Layman-art/Research-Workbench](https://github.com/Layman-art/Research-Workbench) 的 macOS 适配 fork，开始之前请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。隐私与安全说明见 [PRIVACY.md](./PRIVACY.md) 和 [SECURITY.md](./SECURITY.md)。
+欢迎向 [Layman-art/Research-Workbench](https://github.com/Layman-art/Research-Workbench) 提交 Issue 或 Pull Request。开始之前请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。隐私与安全说明见 [PRIVACY.md](./PRIVACY.md) 和 [SECURITY.md](./SECURITY.md)。
 
 ## 开源许可证
 
@@ -206,6 +206,4 @@ Research Workbench 采用 [MIT License](./LICENSE) 开源。第三方组件的�
 
 ## 更新日志
 
-版本变化见 [CHANGELOG.md](./CHANGELOG.md)，可安装文件与校验值见 [Releases](https://github.com/Zhong0118/Research-Workbench/releases)。
-
-与上游 [Layman-art/Research-Workbench](https://github.com/Layman-art/Research-Workbench) 的差异见 [PR #1](https://github.com/Layman-art/Research-Workbench/pull/1)。
+版本变化见 [CHANGELOG.md](./CHANGELOG.md)，可安装文件与校验值见官方 [Releases](https://github.com/Layman-art/Research-Workbench/releases)。初始 macOS 适配来源见 [PR #1](https://github.com/Layman-art/Research-Workbench/pull/1)。

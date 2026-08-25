@@ -4,7 +4,7 @@ Research Workbench 当前面向 Apple Silicon Mac（M1/M2/M3/M4 系列），使�
 
 ## 使用 DMG 安装
 
-1. 双击 `Research Workbench_1.0.11_aarch64.dmg`。
+1. 双击 `Research-Workbench-macOS-arm64.dmg`。
 2. 将 `Research Workbench.app` 拖到映像中的 `Applications` 文件夹。
 3. 推出磁盘映像。
 4. 第一次打开时，在 Finder 的“应用程序”中右键应用并选择“打开”。
@@ -32,7 +32,7 @@ pnpm dist
 
 ```text
 src-tauri/target/release/bundle/macos/Research Workbench.app
-src-tauri/target/release/bundle/dmg/Research Workbench_1.0.11_aarch64.dmg
+src-tauri/target/release/bundle/dmg/Research Workbench_*.dmg
 ```
 
 ## 数据位置与备份
