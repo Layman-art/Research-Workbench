@@ -126,6 +126,5 @@ jobs:
             normalized="${file// /.}"
             if [ "$file" != "$normalized" ]; then mv -- "$file" "$normalized"; fi
           done
-          sha256sum *.exe *.dmg > SHA256SUMS.txt
           cd ..
-          gh release create "$RELEASE_TAG" release-assets/* --verify-tag --title "Research Workbench $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"
+          gh release create "$RELEASE_TAG" release-assets/*.exe release-assets/*.dmg --verify-tag --title "Research Workbench $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"
