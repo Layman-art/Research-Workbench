@@ -121,6 +121,11 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           cd release-assets
+          # GitHub normalizes spaces to dots when accepting release asset names.
+          for file in *.exe *.dmg; do
+            normalized="${file// /.}"
+            if [ "$file" != "$normalized" ]; then mv -- "$file" "$normalized"; fi
+          done
           sha256sum *.exe *.dmg > SHA256SUMS.txt
           cd ..
           gh release create "$RELEASE_TAG" release-assets/* --verify-tag --title "Research Workbench $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"
