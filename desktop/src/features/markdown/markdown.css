@@ -74,6 +74,11 @@
   pointer-events: none;
 }
 
+.markdown-options {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 7px;
+}
 .markdown-mode {
   display: inline-flex;
   gap: 2px;

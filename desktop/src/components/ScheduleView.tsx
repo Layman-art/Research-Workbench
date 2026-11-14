@@ -26,7 +26,7 @@ import clsx from 'clsx';
 
 const WEEK_LABELS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 const CN_WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-type ScheduleMode = 'week-grid' | 'week-list' | 'month';
+type ScheduleMode = 'week-grid' | 'month' | 'list';
 type ScheduleRange = 'recent' | 'past' | 'all';
 
 const RANGE_LABELS: Array<{ value: ScheduleRange; label: string }> = [
@@ -216,6 +216,7 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
 
   // 议程：按范围过滤，再按日期分组，最后按月份聚合（仅「全部」需要月份折叠）
   const managedMonths = useMemo(() => {
+    if (embedded || mode !== 'list') return [];
     const recentEnd = shiftDate(today, 14);
     const filtered = all.filter((record) => {
       if (range === 'all') return true;
@@ -245,7 +246,7 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
       else months.push({ month, label: month ? monthLabel(month) : '未指定日期', days: [day] });
     }
     return months;
-  }, [all, range, today]);
+  }, [all, embedded, mode, range, today]);
 
   if (!type) return null;
 
@@ -270,7 +271,7 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
           <h1 className="page-title">
             {type.name} <InlineNotes text={type.note} />
           </h1>
-          <p className="page-desc">用周历和月历安排时间，议程默认聚焦近期。</p>
+          <p className="page-desc">{mode === 'list' ? '查看近期安排，也可以查找历史日程。' : isMonth ? '点击日期查看当天安排，点击日程直接编辑。' : '点击日程查看或编辑，点击日期下方的「安排」新增。'}</p>
         </div>
         <button className="btn btn-primary" onClick={() => requestEditor({ typeId, planDate: todayStr() })}>
           <Plus size={15} /> 新建日程
@@ -278,45 +279,42 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
       </div>
 
       <div className="week-toolbar">
-        <button className="btn btn-ghost btn-sm" onClick={onPrev}>
-          <ChevronLeft size={14} />
-          {isMonth ? '上一月' : '上一周'}
-        </button>
+        <div className="schedule-mode-switch" role="group" aria-label="日程显示方式">
+          <button className={clsx(mode === 'week-grid' && 'active')} aria-pressed={mode === 'week-grid'} onClick={() => setMode('week-grid')}>
+            <LayoutGrid size={13} /> 周历
+          </button>
+          <button className={clsx(mode === 'month' && 'active')} aria-pressed={mode === 'month'} onClick={() => setMode('month')}>
+            <CalendarDays size={13} /> 月历
+          </button>
+          <button className={clsx(mode === 'list' && 'active')} aria-pressed={mode === 'list'} onClick={() => setMode('list')}>
+            <List size={13} /> 列表
+          </button>
+        </div>
+        {mode !== 'list' && <>
         <div className="week-toolbar-center">
+          <button className="btn btn-ghost btn-sm" aria-label={isMonth ? '上一月' : '上一周'} onClick={onPrev}>
+            <ChevronLeft size={14} />
+          </button>
           <div className="week-range serif">
             {isMonth ? monthTitle : rangeLabel}
             {((isMonth && monthTitle !== currentMonthTitle) || (!isMonth && !days.some((day) => day.str === today))) && (
               <button className="week-today-btn" onClick={() => setAnchorDate(today)}>回到今天</button>
             )}
           </div>
-          <div className="schedule-mode-switch" role="group" aria-label="日程显示方式">
-            <button className={clsx(mode === 'week-grid' && 'active')} aria-pressed={mode === 'week-grid'} onClick={() => setMode('week-grid')}>
-              <LayoutGrid size={13} />
-              周网格
-            </button>
-            <button className={clsx(mode === 'week-list' && 'active')} aria-pressed={mode === 'week-list'} onClick={() => setMode('week-list')}>
-              <List size={13} />
-              周清单
-            </button>
-            <button className={clsx(mode === 'month' && 'active')} aria-pressed={mode === 'month'} onClick={() => setMode('month')}>
-              <CalendarDays size={13} />
-              月历
-            </button>
-          </div>
+          <button className="btn btn-ghost btn-sm" aria-label={isMonth ? '下一月' : '下一周'} onClick={onNext}>
+            <ChevronRight size={14} />
+          </button>
         </div>
         <div className="week-toolbar-end">
           <label className="schedule-date-jump">
             <span>跳转</span>
             <input type="date" aria-label="跳转到日期" value={anchorDate} onChange={(event) => setAnchorDate(event.target.value || todayStr())} />
           </label>
-          <button className="btn btn-ghost btn-sm" onClick={onNext}>
-            {isMonth ? '下一月' : '下一周'}
-            <ChevronRight size={14} />
-          </button>
         </div>
+        </>}
       </div>
 
-      <div className="schedule-body">
+      {mode !== 'list' && <div className="schedule-body">
         {mode === 'week-grid' ? (
           <div className="week-grid-scroll">
             <div className="week-grid">
@@ -349,37 +347,6 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
               })}
             </div>
           </div>
-        ) : mode === 'week-list' ? (
-          <div className="week-list">
-            {days.map((day) => {
-              const items = byDate.get(day.str) ?? [];
-              const isToday = day.str === today;
-              return (
-                <section key={day.str} className={clsx('week-list-day', isToday && 'today')}>
-                  <div className="week-list-date">
-                    <span>{day.label}</span>
-                    <strong>{Number(day.str.slice(5, 7))} 月 {Number(day.str.slice(8))} 日</strong>
-                    {isToday && <em>今天</em>}
-                  </div>
-                  <div className="week-list-items">
-                    {items.length > 0 ? (
-                      items.map((record) => <PlanChip key={record.id} record={record} />)
-                    ) : (
-                      <span className="week-list-empty">暂无安排</span>
-                    )}
-                  </div>
-                  <button
-                    className="week-list-add"
-                    aria-label={`在${agendaDayLabel(day.str)}安排日程`}
-                    onClick={() => requestEditor({ typeId, planDate: day.str })}
-                  >
-                    <Plus size={14} />
-                    安排
-                  </button>
-                </section>
-              );
-            })}
-          </div>
         ) : (
           <div className="month-grid-scroll">
             <div className="month-grid">
@@ -405,12 +372,12 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
-      <section className="schedule-manager">
+      {mode === 'list' && <section className="schedule-manager">
         <div className="schedule-manager-head">
           <div>
-            <h2 className="serif">议程</h2>
+            <h2 className="serif">日程列表</h2>
             <p>{range === 'all' ? '全部日程按月份折叠，点月份展开或收起。' : range === 'past' ? '过去落笔的安排。' : '今天起未来两周的安排。'}</p>
           </div>
           <div className="schedule-range-switch" role="group" aria-label="日程范围">
@@ -431,7 +398,7 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
           {managedMonths.length === 0 ? (
             <div className="schedule-manager-empty">
               此范围内暂无日程
-              <span>可以在上方周视图中选择日期，或新建一条安排。</span>
+              <span>点击「新建日程」添加一条安排。</span>
             </div>
           ) : (
             managedMonths.map((monthGroup) => {
@@ -447,7 +414,7 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
               };
               return (
                 <section key={monthGroup.month || 'undated'} className="schedule-manager-month">
-                  {range === 'all' ? (
+                  {range === 'all' && (
                     <button
                       className="schedule-month-divider"
                       onClick={toggleMonth}
@@ -459,8 +426,6 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
                         {monthGroup.days.reduce((sum, day) => sum + day.items.length, 0)} 项
                       </span>
                     </button>
-                  ) : (
-                    <div className="schedule-day-heading">{monthGroup.label}</div>
                   )}
                   {isExpanded && monthGroup.days.map((group) => (
                     <div key={group.date || 'undated'} className="schedule-manager-day">
@@ -525,7 +490,7 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
             })
           )}
         </div>
-      </section>
+      </section>}
 
       {dayDrawer && (
         <Modal
@@ -533,14 +498,14 @@ export function ScheduleView({ typeId, embedded }: { typeId: string; embedded?: 
           onClose={() => setDayDrawer(null)}
           footer={
             <>
-              <button className="btn btn-ghost" onClick={() => { setAnchorDate(dayDrawer); setMode('week-grid'); setDayDrawer(null); }}>在周网格中打开</button>
+              <button className="btn btn-ghost" onClick={() => { setAnchorDate(dayDrawer); setMode('week-grid'); setDayDrawer(null); }}>在周历中打开</button>
               <button className="btn btn-primary" onClick={() => { requestEditor({ typeId, planDate: dayDrawer }); setDayDrawer(null); }}>安排</button>
             </>
           }
         >
           <div className="day-drawer-list">
             {(byDate.get(dayDrawer) ?? []).length === 0 ? (
-              <p className="week-list-empty">这一天还没有安排。</p>
+              <p className="day-drawer-empty">这一天还没有安排。</p>
             ) : (
               (byDate.get(dayDrawer) ?? []).map((record) => <PlanChip key={record.id} record={record} />)
             )}

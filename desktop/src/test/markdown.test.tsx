@@ -33,17 +33,24 @@ describe('Markdown', () => {
     expect(Array.from(summary)).toHaveLength(20);
   });
 
-  it('switches between a controlled textarea and rendered preview', () => {
+  it('starts with a textarea and keeps the source intact when optional preview is opened and closed', () => {
     const onChange = vi.fn();
     render(
       <MarkdownEditor value="# 实验记录" onChange={onChange} onOpenExternal={vi.fn()} />,
     );
 
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '## 新结果' } });
-    expect(onChange).toHaveBeenCalledWith('## 新结果');
+    expect(screen.queryByRole('group', { name: '正文显示方式' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '普通文字\n第二行，不需要排版符号。' } });
+    expect(onChange).toHaveBeenCalledWith('普通文字\n第二行，不需要排版符号。');
+    onChange.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Markdown 排版（可选）' }));
     fireEvent.click(screen.getByRole('button', { name: '预览' }));
     expect(screen.getByRole('heading', { name: '实验记录' })).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '收起排版工具' }));
+    expect(screen.getByRole('textbox')).toHaveValue('# 实验记录');
+    expect(screen.queryByRole('group', { name: '正文显示方式' })).not.toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('preserves single line breaks as <br> (remark-breaks)', () => {
@@ -60,6 +67,7 @@ describe('Markdown', () => {
       <MarkdownEditor value="# 同步预览" onChange={vi.fn()} onOpenExternal={vi.fn()} />,
     );
 
+    fireEvent.click(screen.getByRole('button', { name: 'Markdown 排版（可选）' }));
     fireEvent.click(screen.getByRole('button', { name: '分栏' }));
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '同步预览' })).toBeInTheDocument();

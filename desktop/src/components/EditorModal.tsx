@@ -302,9 +302,9 @@ export function EditorModal({ request, onClose }: { request: EditorRequest; onCl
   const exportText = async () => {
     try {
       await desktopPlatform.saveTextFile({
-        suggestedName: `${(title.trim() || '未命名笔记').replace(/[<>:"/\\|?*]/g, '_')}.md`,
-        contents: `${title.trim() ? `# ${title.trim()}\n\n` : ''}${content}`,
-        mimeType: 'text/markdown',
+        suggestedName: `${(title.trim() || '未命名笔记').replace(/[<>:"/\\|?*]/g, '_')}.txt`,
+        contents: `${title.trim() ? `${title.trim()}\n\n` : ''}${content}`,
+        mimeType: 'text/plain',
       });
     } catch (error) { setSaveError(`另存失败：${String(error)}`); }
   };
@@ -405,7 +405,7 @@ export function EditorModal({ request, onClose }: { request: EditorRequest; onCl
       </div>
 
       <div className="editor-writing-toolbar">
-        <span>正文支持 Markdown</span>
+        <span>直接输入文字即可，换行会保留。</span>
         <button className="btn btn-ghost btn-sm" type="button" onClick={() => setExpanded((value) => !value)}>
           {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}{expanded ? '还原编辑区' : '展开编辑区'}
         </button>

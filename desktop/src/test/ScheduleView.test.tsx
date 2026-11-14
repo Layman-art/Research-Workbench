@@ -27,30 +27,41 @@ describe('ScheduleView', () => {
     expect(useStore.getState().view).toBe(scheduleType.id);
   });
 
-  it('keeps the weekly planning views on the management page', () => {
+  it('shows one schedule view at a time without duplicating events', () => {
     const snapshot = buildInitialSnapshot();
     const scheduleType = snapshot.types.find((type) => type.kind === 'schedule')!;
     useStore.setState({ ...original, ...snapshot });
 
     const { container } = render(<ScheduleView typeId={scheduleType.id} />);
 
-    expect(screen.getByRole('button', { name: '周网格' })).toHaveAttribute('aria-pressed', 'true');
+    const title = snapshot.records.find((record) => record.typeId === scheduleType.id)!.title;
+    expect(screen.getByRole('button', { name: '周历' })).toHaveAttribute('aria-pressed', 'true');
     expect(container.querySelector('.week-grid')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '议程' })).toBeInTheDocument();
+    expect(container.querySelector('.schedule-manager')).not.toBeInTheDocument();
+    expect(screen.getAllByText(title)).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: /在.*安排日程/ })).toHaveLength(7);
+
+    fireEvent.click(screen.getByRole('button', { name: '列表' }));
+
+    expect(screen.getByRole('button', { name: '列表' })).toHaveAttribute('aria-pressed', 'true');
+    expect(container.querySelector('.week-grid')).not.toBeInTheDocument();
+    expect(container.querySelector('.month-grid')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('跳转到日期')).not.toBeInTheDocument();
+    expect(screen.getAllByText(title)).toHaveLength(1);
     expect(screen.getByRole('button', { name: '近期' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '历史' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '全部' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '月历' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: '周清单' }));
-
-    expect(screen.getByRole('button', { name: '周清单' })).toHaveAttribute('aria-pressed', 'true');
-    expect(container.querySelector('.week-grid')).not.toBeInTheDocument();
-    expect(container.querySelector('.week-list')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /在.*安排日程/ })).toHaveLength(7);
-
     fireEvent.click(screen.getByRole('button', { name: '月历' }));
     expect(container.querySelector('.month-grid')).toBeInTheDocument();
+    expect(container.querySelector('.schedule-manager')).not.toBeInTheDocument();
+    expect(screen.getAllByText(title)).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: '周历' }));
+    expect(container.querySelector('.week-grid')).toBeInTheDocument();
+    expect(container.querySelector('.month-grid')).not.toBeInTheDocument();
+    expect(container.querySelector('.schedule-manager')).not.toBeInTheDocument();
   });
 
   it('filters the full schedule list and exposes edit and delete actions', async () => {
@@ -70,6 +81,7 @@ describe('ScheduleView', () => {
     window.addEventListener(EDITOR_EVENT, listener);
 
     const { container } = render(<ScheduleView typeId={scheduleType.id} />);
+    fireEvent.click(screen.getByRole('button', { name: '列表' }));
     const manager = within(container.querySelector('.schedule-manager-list')!);
 
     // 默认「近期」：2099 太远、2020 已过去，都不显示

@@ -16,10 +16,10 @@
   </p>
 
   <p>
-    <a href="https://github.com/Layman-art/Research-Workbench/releases/download/v2.0.0/Research.Workbench_2.0.0_x64-setup.exe"><img alt="下载 Windows x64 安装版" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_Windows_x64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge"></a>
-    <a href="https://github.com/Layman-art/Research-Workbench/releases/download/v2.0.0/Research.Workbench_2.0.0_aarch64.dmg"><img alt="下载 macOS Apple Silicon 安装版" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_macOS_arm64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge&logo=apple&logoColor=white"></a>
+    <a href="https://github.com/Layman-art/Research-Workbench/releases/download/v2.0.1/Research.Workbench_2.0.1_x64-setup.exe"><img alt="下载 Windows x64 安装版" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_Windows_x64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge"></a>
+    <a href="https://github.com/Layman-art/Research-Workbench/releases/download/v2.0.1/Research.Workbench_2.0.1_aarch64.dmg"><img alt="下载 macOS Apple Silicon 安装版" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_macOS_arm64-%E7%A7%91%E7%A0%94%E5%B7%A5%E4%BD%9C%E5%8F%B0-D9A441?style=for-the-badge&logo=apple&logoColor=white"></a>
   </p>
-  <p><sub>v2.0.0 · Windows 4.45 MB · macOS 6.62 MB · 无需账号，打开即用</sub></p>
+  <p><sub>v2.0.1 · Windows / macOS · 无需账号，打开即用</sub></p>
 
   <p>
     <a href="#快速开始">快速开始</a> ·
@@ -31,11 +31,11 @@
 </div>
 
 <p align="center">
-  <img src="./docs/assets/v2/dashboard.png" width="100%" alt="科研工作台 v2.0.0：近期日程、到期提醒与最近笔记">
+  <img src="./docs/assets/v2/dashboard.png" width="100%" alt="科研工作台：近期日程、到期提醒与最近笔记">
   <br><sub>工作台总览 · 今天的安排、待办与研究记录，都在这里。</sub>
 </p>
 
-> **v2.0.0 已发布**：更可靠的长笔记保存、可恢复的草稿、每日备份与回收站，以及跨天自动刷新。[查看本版更新 →](./docs/releases/v2.0.0.md)
+> **v2.0.1 已发布**：日程改为单视图切换，笔记默认直接输入普通文字；延续 v2 的可靠保存、草稿恢复、每日备份与跨天自动刷新。[查看本版更新 →](./docs/releases/v2.0.1.md)
 
 ## 为什么做 Research Workbench？
 
@@ -47,7 +47,7 @@ Research Workbench 把这些线索放回同一张桌面。打开工作台，就�
 | --- | --- |
 | 项目推进到哪一步了？ | 纵向 / 横向项目分类、状态看板与关联待办 |
 | 今天先做什么？ | 我的日程、到期提醒与今日重点 |
-| 上次的想法和资料在哪里？ | Markdown 笔记、全局搜索与本地文件引用 |
+| 上次的想法和资料在哪里？ | 普通文字笔记、可选排版、全局搜索与本地文件引用 |
 | 这周有哪些进展？ | 活动记录与周报、月报导出 |
 
 ## 功能一览
@@ -61,12 +61,13 @@ Research Workbench 把这些线索放回同一张桌面。打开工作台，就�
 ### ✅ 待办与日程
 
 - 「今天 / 计划 / 档案」分组、重要标记与循环待办
-- 截止日期、优先级、系统通知与周日程
+- 截止日期、优先级与系统通知；日程按周历、月历、列表独立切换
 - 常驻托盘与开机自启，跨午夜或睡眠唤醒后自动更新日期
 
 ### 📝 笔记与科研资料
 
-- Markdown 编辑、分栏预览、长文展开与自动草稿恢复
+- 直接输入普通文字即可保存；可选 Markdown 排版与分栏预览
+- 长文展开编辑与自动草稿恢复
 - 全局搜索、文献 DOI、本地文件和文件夹引用
 - 多工作区、自定义记录类型、批量操作与多格式导出
 
@@ -91,17 +92,27 @@ Research Workbench 把这些线索放回同一张桌面。打开工作台，就�
   </tr>
   <tr>
     <td width="50%" align="center">
-      <img src="./docs/assets/v2/editor.png" alt="Markdown 笔记编辑与预览">
-      <br><sub>科研笔记 · 安心记录，边写边预览</sub>
+      <img src="./docs/assets/v2/editor.png" alt="普通文字笔记编辑与可选排版工具">
+      <br><sub>科研笔记 · 直接输入，草稿自动保留</sub>
     </td>
     <td width="50%" align="center">
       <img src="./docs/assets/v2/todo.png" alt="待办事项与今日重点">
       <br><sub>待办事项 · 把想法变成下一步行动</sub>
     </td>
   </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="./docs/assets/v2/schedule-week.png" alt="独立的周历视图">
+      <br><sub>周历 · 只看当前一周，清楚安排每一天</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="./docs/assets/v2/schedule-list.png" alt="独立的日程列表视图">
+      <br><sub>日程列表 · 按需查看近期安排与历史记录</sub>
+    </td>
+  </tr>
 </table>
 
-<p align="center"><sub>以上为 v2.0.0 界面，使用示例数据展示；同时支持浅色、深色和跟随系统主题。</sub></p>
+<p align="center"><sub>截图在独立演示环境中生成，使用内置虚构示例与演示文案，不含个人科研数据或本机文件。支持浅色、深色和跟随系统主题。</sub></p>
 
 ## 快速开始
 

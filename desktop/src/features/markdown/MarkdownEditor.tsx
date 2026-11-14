@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { MarkdownPreview } from './MarkdownPreview';
 
 interface MarkdownEditorProps {
@@ -16,7 +16,9 @@ export function MarkdownEditor({
   onOpenExternal,
   placeholder = '记录细节、心得、实验命令、结果与链接……',
 }: MarkdownEditorProps) {
+  const [showMarkdownTools, setShowMarkdownTools] = useState(false);
   const [mode, setMode] = useState<MarkdownMode>('edit');
+  const controlsId = useId();
 
   const preview = value.trim() ? (
     <MarkdownPreview
@@ -39,7 +41,21 @@ export function MarkdownEditor({
 
   return (
     <div className="markdown-editor">
-      <div className="markdown-mode" role="group" aria-label="正文显示方式">
+      <div className="markdown-options">
+        <button
+          className="btn btn-ghost btn-sm"
+          type="button"
+          aria-expanded={showMarkdownTools}
+          aria-controls={controlsId}
+          onClick={() => {
+            setShowMarkdownTools((shown) => !shown);
+            setMode('edit');
+          }}
+        >
+          {showMarkdownTools ? '收起排版工具' : 'Markdown 排版（可选）'}
+        </button>
+      </div>
+      {showMarkdownTools && <div id={controlsId} className="markdown-mode" role="group" aria-label="正文显示方式">
         <button type="button" aria-pressed={mode === 'edit'} onClick={() => setMode('edit')}>
           编辑
         </button>
@@ -49,7 +65,7 @@ export function MarkdownEditor({
         <button type="button" aria-pressed={mode === 'preview'} onClick={() => setMode('preview')}>
           预览
         </button>
-      </div>
+      </div>}
 
       {mode === 'split' ? (
         <div className="markdown-split">

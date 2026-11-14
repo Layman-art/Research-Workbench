@@ -1,7 +1,7 @@
 {
   "name": "@research-workbench/desktop",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "description": "Local-first research workbench for Windows and macOS, with SQLite and recoverable drafts.",
   "author": "Layman-art",
