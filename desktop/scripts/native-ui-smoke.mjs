@@ -62,14 +62,20 @@ try {
   await dialog.getByPlaceholder('给这条记录起个名字').fill(title);
   await dialog.locator('textarea.markdown-source').fill(content);
   await dialog.getByRole('button', { name: '展开编辑区' }).click();
-  assert.ok((await dialog.boundingBox()).width > 1_000, 'expanded editor must use the available width');
+  // CI desktop resolution and Windows DPI affect CSS pixels; check usable width.
+  await page.waitForFunction(() => {
+    const editor = document.querySelector('.record-editor-expanded');
+    return editor && editor.getBoundingClientRect().width >= window.innerWidth - 48;
+  });
   await dialog.getByRole('button', { name: '创建记录', exact: true }).click();
   await dialog.waitFor({ state: 'hidden' });
+  console.log('Native UI: long note committed.');
   await page.locator('.topbar').getByRole('button', { name: /新建/ }).click();
   await page.getByRole('dialog').locator('textarea.markdown-source').fill(draftText);
   // No 500 ms debounce wait: exercise the real native exit -> draft flush handshake.
   await quit();
   verifyDisk();
+  console.log('Native UI: quit flushed pending draft and preserved the full note.');
   spawn(executable, ['--hidden'], { windowsHide: true, stdio: 'ignore', env: process.env }).unref();
   await connect();
   dialog = await openNote();
@@ -81,6 +87,7 @@ try {
   assert.equal(await page.getByRole('dialog').locator('textarea.markdown-source').inputValue(), draftText);
   await page.getByRole('dialog').getByRole('button', { name: '关闭', exact: true }).first().click();
   await page.getByRole('button', { name: '保留草稿并关闭', exact: true }).click();
+  console.log('Native UI: note and untitled draft recovered after restart.');
   const backup = await page.evaluate(() => window.__TAURI_INTERNALS__.invoke('create_backup', { reason: 'native-smoke' }));
   dialog = await openNote();
   await dialog.locator('textarea.markdown-source').fill('修改后的内容，应被所选备份恢复。');
@@ -90,6 +97,7 @@ try {
   await quit('finish_exit', { restart: true });
   await connect();
   verifyDisk();
+  console.log('Native UI: backup restored the note and draft after another restart.');
   dialog = await openNote();
   assert.equal(await dialog.locator('textarea.markdown-source').inputValue(), content);
   await mkdir('desktop/test-results/native', { recursive: true });
