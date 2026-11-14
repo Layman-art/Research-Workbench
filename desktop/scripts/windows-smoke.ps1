@@ -1,10 +1,17 @@
 $ErrorActionPreference = 'Stop'
-if (!$env:CI) { throw 'This smoke test uses a disposable GitHub runner profile and must only run in CI.' }
+if (!$env:CI -or !$env:GITHUB_ACTIONS) { throw 'This smoke test must only run in a disposable GitHub runner profile.' }
 $binary = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../src-tauri/target/release/research-workbench.exe')).Path
 $database = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'com.researchworkbench.desktop/research-workbench.db'
 $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = '--remote-debugging-port=9437'
-$process = Start-Process -FilePath $binary -ArgumentList '--hidden' -WindowStyle Hidden -PassThru
+$webviewPolicy = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments'
+$process = $null
 try {
+  # WebView2 150+ ignores environment overrides in the elevated GitHub runner.
+  # Scope its supported machine policy to this executable in this disposable VM.
+  # https://github.com/MicrosoftEdge/WebView2Feedback/issues/5645
+  New-Item -Path $webviewPolicy -Force | Out-Null
+  New-ItemProperty -LiteralPath $webviewPolicy -Name 'research-workbench.exe' -PropertyType String -Value '--remote-debugging-port=9437' -Force | Out-Null
+  $process = Start-Process -FilePath $binary -ArgumentList '--hidden' -WindowStyle Hidden -PassThru
   $deadline = (Get-Date).AddSeconds(45)
   while ((Get-Date) -lt $deadline) {
     if ($process.HasExited) { throw "Desktop exited unexpectedly: $($process.ExitCode)" }
@@ -25,6 +32,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Native save/restart/draft/restore validation failed' }
 } finally {
   # CI-only, disposable profile. Production quit awaits pending drafts and writes.
-  if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
+  if ($process -and !$process.HasExited) { Stop-Process -Id $process.Id -Force }
   Get-CimInstance Win32_Process -Filter "Name = 'research-workbench.exe'" | Where-Object { $_.ExecutablePath -eq $binary } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+  Remove-ItemProperty -LiteralPath $webviewPolicy -Name 'research-workbench.exe' -ErrorAction SilentlyContinue
 }
