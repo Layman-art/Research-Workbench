@@ -1,6 +1,8 @@
 $ErrorActionPreference = 'Stop'
+if (!$env:CI) { throw 'This smoke test uses a disposable GitHub runner profile and must only run in CI.' }
 $binary = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../src-tauri/target/release/research-workbench.exe')).Path
 $database = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'com.researchworkbench.desktop/research-workbench.db'
+$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = '--remote-debugging-port=9437'
 $process = Start-Process -FilePath $binary -ArgumentList '--hidden' -WindowStyle Hidden -PassThru
 try {
   $deadline = (Get-Date).AddSeconds(45)
@@ -19,7 +21,10 @@ try {
   while ((Get-Date) -lt $deadline -and !(Get-ChildItem -LiteralPath $backupDir -Filter '*.sqlite' -ErrorAction SilentlyContinue)) { Start-Sleep -Seconds 1 }
   if (!(Get-ChildItem -LiteralPath $backupDir -Filter '*.sqlite' -ErrorAction SilentlyContinue)) { throw 'Native automatic backup was not created' }
   Write-Output 'Native hidden startup, SQL permissions, schema migration and automatic backup passed.'
+  node (Join-Path $PSScriptRoot 'native-ui-smoke.mjs') $database $binary
+  if ($LASTEXITCODE -ne 0) { throw 'Native save/restart/draft/restore validation failed' }
 } finally {
   # CI-only, disposable profile. Production quit awaits pending drafts and writes.
   if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
+  Get-CimInstance Win32_Process -Filter "Name = 'research-workbench.exe'" | Where-Object { $_.ExecutablePath -eq $binary } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
