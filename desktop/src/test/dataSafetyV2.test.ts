@@ -87,6 +87,52 @@ describe('v2 data safety', () => {
     expect(validateImportData({ ...legacy, version: 999 }).ok).toBe(false);
   });
 
+  it.each(['memory', 'sqlite'])('protects incoming project links atomically in %s', async (backend) => {
+    const executor = backend === 'sqlite' ? new Executor() : null;
+    const repository = executor ? new SqliteWorkbenchRepository(executor, buildInitialSnapshot) : new InMemoryWorkbenchRepository(buildInitialSnapshot());
+    try {
+      const store = createWorkbenchStore(repository);
+      await store.getState().hydrate();
+      await store.getState().addWorkspace('目标工作区');
+      const [a, b] = store.getState().workspaces;
+      const project = await store.getState().addRecord({ typeId: 'project', title: '关联项目', workspaceId: a.id });
+      const note = await store.getState().addRecord({ typeId: 'note', title: '关联笔记', content: '正文不可改变', workspaceId: a.id, projectId: project.id });
+      const unrelated = await store.getState().addRecord({ typeId: 'note', title: '批量同行', workspaceId: a.id });
+      const before = await repository.loadSnapshot();
+      await expect(store.getState().updateRecord(project.id, { workspaceId: b.id })).rejects.toThrow('先解除关联');
+      await expect(store.getState().updateRecord(project.id, { typeId: 'note' })).rejects.toThrow('先解除关联');
+      await expect(store.getState().updateRecords([unrelated.id, project.id], { workspaceId: b.id })).rejects.toThrow('先解除关联');
+      expect(await repository.loadSnapshot()).toEqual(before);
+      expect(store.getState().records.find((item) => item.id === note.id)).toMatchObject({ content: '正文不可改变', projectId: project.id });
+      const exported = JSON.parse(JSON.stringify(store.getState().exportData()));
+      expect(validateImportData(exported).ok).toBe(true);
+      await store.getState().importData(exported);
+      await store.getState().deleteRecord(note.id);
+      await expect(store.getState().updateRecord(project.id, { workspaceId: b.id })).rejects.toThrow('含回收站');
+      await store.getState().updateRecord(note.id, { projectId: null });
+      await store.getState().updateRecord(project.id, { workspaceId: b.id });
+      expect(validateImportData(store.getState().exportData()).ok).toBe(true);
+      expect((await repository.loadSnapshot()).records.find((item) => item.id === project.id)?.workspaceId).toBe(b.id);
+    } finally { executor?.database.close(); }
+  });
+
+  it.each([1, 2, 3])('preserves legacy invalid schedule times through version %s imports and exports', async (version) => {
+    const initial = buildInitialSnapshot();
+    const record = { ...initial.records[0], planStart: '18:00', planEnd: '09:00' };
+    const payload = { app: 'research-workbench', version, ...initial, records: [record] };
+    const preview = validateImportData(payload);
+    expect(preview.ok).toBe(true);
+    if (!preview.ok) throw new Error(preview.error);
+    expect(preview.warnings.join('')).toContain('原样保留');
+    const store = createWorkbenchStore(new InMemoryWorkbenchRepository(initial));
+    await store.getState().hydrate();
+    await store.getState().importData(payload);
+    const exported = store.getState().exportData();
+    expect(exported.records[0]).toMatchObject({ planStart: '18:00', planEnd: '09:00' });
+    expect(validateImportData(exported).ok).toBe(true);
+    await expect(store.getState().updateRecord(record.id, { title: '仍须修正时间' })).rejects.toThrow('结束时间');
+  });
+
   it('migrates a v1 database without seeding over existing content', async () => {
     const executor = new Executor();
     for (const statement of SCHEMA_V1) await executor.execute(statement);

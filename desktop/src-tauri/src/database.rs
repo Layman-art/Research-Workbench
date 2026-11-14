@@ -44,37 +44,54 @@ pub async fn execute_transaction_at(
         .await
         .map_err(|error| format!("无法开始事务：{error}"))?;
 
-    for statement in statements {
-        let mut query = sqlx::query(&statement.sql);
-        for value in statement.params {
-            query = match value {
-                Value::Null => query.bind(Option::<String>::None),
-                Value::Bool(value) => query.bind(if value { 1_i64 } else { 0_i64 }),
-                Value::Number(value) => {
-                    if let Some(value) = value.as_i64() {
-                        query.bind(value)
-                    } else if let Some(value) = value.as_u64() {
-                        let value = i64::try_from(value)
-                            .map_err(|_| "SQL 整数参数超出 i64 范围".to_string())?;
-                        query.bind(value)
-                    } else {
-                        query.bind(value.as_f64().unwrap_or_default())
+    let result: Result<(), String> = async {
+        for statement in statements {
+            let mut query = sqlx::query(&statement.sql);
+            for value in statement.params {
+                query = match value {
+                    Value::Null => query.bind(Option::<String>::None),
+                    Value::Bool(value) => query.bind(if value { 1_i64 } else { 0_i64 }),
+                    Value::Number(value) => {
+                        if let Some(value) = value.as_i64() {
+                            query.bind(value)
+                        } else if let Some(value) = value.as_u64() {
+                            let value = i64::try_from(value)
+                                .map_err(|_| "SQL 整数参数超出 i64 范围".to_string())?;
+                            query.bind(value)
+                        } else {
+                            query.bind(value.as_f64().unwrap_or_default())
+                        }
                     }
-                }
-                Value::String(value) => query.bind(value),
-                Value::Array(_) | Value::Object(_) => query.bind(value.to_string()),
-            };
+                    Value::String(value) => query.bind(value),
+                    Value::Array(_) | Value::Object(_) => query.bind(value.to_string()),
+                };
+            }
+            query
+                .execute(&mut *transaction)
+                .await
+                .map_err(|error| format!("事务语句执行失败：{error}"))?;
         }
-        query
-            .execute(&mut *transaction)
-            .await
-            .map_err(|error| format!("事务语句执行失败：{error}"))?;
-    }
 
-    transaction
-        .commit()
+        Ok(())
+    }
+    .await;
+    let result = match result {
+        Ok(()) => transaction
+            .commit()
+            .await
+            .map_err(|error| format!("无法提交事务：{error}")),
+        Err(error) => match transaction.rollback().await {
+            Ok(()) => Err(error),
+            Err(rollback) => Err(format!("{error}；回滚失败：{rollback}")),
+        },
+    };
+    // Await the SQLite worker releasing its file handle, including on rollback.
+    let closed = connection
+        .close()
         .await
-        .map_err(|error| format!("无法提交事务：{error}"))
+        .map_err(|error| format!("无法关闭数据库连接：{error}"));
+    result?;
+    closed
 }
 
 #[tauri::command]
@@ -109,7 +126,7 @@ mod tests {
                 .execute(&mut connection)
                 .await
                 .expect("create table");
-            drop(connection);
+            connection.close().await.expect("close setup connection");
 
             let result = execute_transaction_at(
                 &url,
@@ -134,7 +151,10 @@ mod tests {
                 .expect("count")
                 .get("count");
             assert_eq!(count, 0);
-            drop(connection);
+            connection
+                .close()
+                .await
+                .expect("close verification connection");
             std::fs::remove_file(path).expect("remove test database");
         });
     }

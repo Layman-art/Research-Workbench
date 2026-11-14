@@ -448,8 +448,17 @@ export class SqliteWorkbenchRepository implements WorkbenchRepository {
     };
   }
 
+  private async assertProjectChangeAllowed(previous: RecordItem | null, next: RecordItem): Promise<void> {
+    if (!previous || (previous.workspaceId === next.workspaceId && previous.typeId === next.typeId)) return;
+    const [type] = await this.executor.select<{ kind: string }>('SELECT kind FROM types WHERE id = ?', [next.typeId]);
+    if (previous.workspaceId === next.workspaceId && type?.kind === 'project') return;
+    const [{ count = 0 } = {}] = await this.executor.select<{ count: number }>('SELECT COUNT(*) AS count FROM records WHERE project_id = ?', [next.id]);
+    if (Number(count) > 0) throw new Error('此项目仍有关联记录（含回收站），请先解除关联，再移动工作区或更改类型');
+  }
+
   async saveRecord(record: RecordItem): Promise<void> {
     const previous = await readRecord(this.executor, record.id);
+    await this.assertProjectChangeAllowed(previous, record);
     await this.executor.transaction(async (transaction) => {
       await writeRecord(transaction, record);
       await writeActivity(transaction, activity(record, previous ? 'updated' : 'created', record.updatedAt));
@@ -495,6 +504,7 @@ export class SqliteWorkbenchRepository implements WorkbenchRepository {
     }
     const updatedAt = Date.now();
     const updated = records.map((record) => ({ ...record, ...(patch.workspaceId && patch.workspaceId !== record.workspaceId && patch.projectId === undefined ? { projectId: null } : {}), ...patch, updatedAt }));
+    for (let index = 0; index < updated.length; index++) await this.assertProjectChangeAllowed(records[index], updated[index]);
     await this.executor.transaction(async (transaction) => {
       for (const record of updated) {
         await writeRecord(transaction, record);

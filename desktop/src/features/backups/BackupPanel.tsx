@@ -11,6 +11,7 @@ export function BackupPanel({ recovery = false }: { recovery?: boolean }) {
   const [info, setInfo] = useState<StorageInfo | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [restorePending, setRestorePending] = useState(false);
   const refresh = useCallback(() => {
     void backupService.info().then(setInfo).catch((error: unknown) => setMessage(String(error)));
   }, []);
@@ -22,12 +23,18 @@ export function BackupPanel({ recovery = false }: { recovery?: boolean }) {
     const confirmed = recovery ? window.confirm(question) : await confirmDialog({ message: question, confirmLabel: '恢复并重启', danger: true });
     if (!confirmed) return;
     setBusy(true);
+    let staged = false;
     try {
       await flushPendingDrafts();
       await useStore.getState().whenIdle();
       await backupService.restore(name);
+      staged = true;
+      setRestorePending(true);
       await backupService.finishExit(true);
-    } catch (error) { setMessage(`恢复失败：${String(error)}`); setBusy(false); }
+    } catch (error) {
+      setMessage(staged ? `恢复已安排，但自动重启失败：${String(error)}。请重新启动完成恢复；此后编辑的内容不会包含在所选备份中。` : `恢复失败：${String(error)}`);
+      setBusy(false);
+    }
   };
 
   return <section className="card settings-section">
@@ -38,7 +45,7 @@ export function BackupPanel({ recovery = false }: { recovery?: boolean }) {
       <p>数据库 {size(info.databaseBytes)} · 备份 {size(info.backupBytes)}</p>
     </>}
     <div className="data-actions">
-      {!recovery && <button className="btn btn-ghost" disabled={busy} onClick={() => {
+      {!recovery && <button className="btn btn-ghost" disabled={busy || restorePending} onClick={() => {
         setBusy(true);
         void flushPendingDrafts().then(() => useStore.getState().whenIdle()).then(() => backupService.create('manual')).then(() => { setMessage('备份已创建并通过完整性校验'); refresh(); })
           .catch((error: unknown) => setMessage(`备份失败：${String(error)}`)).finally(() => setBusy(false));
@@ -49,9 +56,16 @@ export function BackupPanel({ recovery = false }: { recovery?: boolean }) {
       <summary>恢复历史备份（{info?.backups.length ?? 0}）</summary>
       {info?.backups.map((backup) => <div className="manage-row" key={backup.name}>
         <span style={{ flex: 1, overflowWrap: 'anywhere' }}>{new Date(backup.createdAt).toLocaleString()} · {size(backup.bytes)}</span>
-        <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => void restore(backup.name)}>恢复</button>
+        <button className="btn btn-ghost btn-sm" disabled={busy || restorePending} onClick={() => void restore(backup.name)}>恢复</button>
       </div>)}
     </details>
+    {restorePending && <button className="btn btn-primary" disabled={busy} onClick={() => {
+      setBusy(true);
+      void backupService.finishExit(true).catch((error: unknown) => {
+        setMessage(`恢复已安排，仍无法自动重启：${String(error)}。请退出后重新打开应用完成恢复。`);
+        setBusy(false);
+      });
+    }}>重试重启并完成恢复</button>}
     {message && <p role="status">{message}</p>}
   </section>;
 }

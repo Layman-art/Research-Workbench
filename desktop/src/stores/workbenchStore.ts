@@ -205,12 +205,12 @@ const DEFAULT_SETTINGS: AppSettings = {
   closeToTray: true, autoLaunch: false, notificationsEnabled: false,
 };
 
-function validateRecordLinks(record: RecordItem, state: Pick<WorkbenchSnapshot, 'records' | 'types' | 'workspaces'>): void {
+function validateRecordLinks(record: RecordItem, state: Pick<WorkbenchSnapshot, 'records' | 'types' | 'workspaces'>, validateSchedule = true): void {
   if (!isRecord(record)) throw new Error('记录格式不正确');
   if (!state.types.some((type) => type.id === record.typeId) || !state.workspaces.some((workspace) => workspace.id === record.workspaceId)) {
     throw new Error('记录引用了不存在的类型或工作区');
   }
-  if (record.planStart && record.planEnd && record.planEnd < record.planStart) throw new Error('结束时间不能早于开始时间');
+  if (validateSchedule && record.planStart && record.planEnd && record.planEnd < record.planStart) throw new Error('结束时间不能早于开始时间');
   if (record.projectId) {
     const project = state.records.find((item) => item.id === record.projectId);
     if (!project || project.id === record.id || project.workspaceId !== record.workspaceId ||
@@ -265,11 +265,13 @@ export function validateImportData(payload: unknown, fallbackSettings = DEFAULT_
     return { ok: false, error: '活动记录格式不正确' };
   }
   const snapshot: WorkbenchSnapshot = { records: migratedRecords, types, workspaces: payload.workspaces, settings, activities: activities as ActivityEvent[] };
-  try { for (const record of snapshot.records) validateRecordLinks(record, snapshot); }
+  try { for (const record of snapshot.records) validateRecordLinks(record, snapshot, false); }
   catch (error) { return { ok: false, error: errorMessage(error) }; }
+  const warnings = legacy ? ['已补齐旧版字段并迁移项目类型；旧备份不包含编辑草稿和历史活动。'] : [];
+  if (snapshot.records.some((record) => record.planStart && record.planEnd && record.planEnd < record.planStart)) warnings.push('备份含结束时间早于开始时间的历史日程，已原样保留；编辑保存时请修正时间。');
   return { ok: true, snapshot, summary: { records: snapshot.records.length, types: types.length,
     workspaces: snapshot.workspaces.length, trashed: snapshot.records.filter((record) => record.deletedAt).length,
-    activities: activities.length }, warnings: legacy ? ['已补齐旧版字段并迁移项目类型；旧备份不包含编辑草稿和历史活动。'] : [] };
+    activities: activities.length }, warnings };
 }
 
 export function createWorkbenchStore(repository: WorkbenchRepository) {

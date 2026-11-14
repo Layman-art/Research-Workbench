@@ -63,11 +63,15 @@ jobs:
       - run: rustup default stable
       - if: runner.os == 'macOS'
         run: rustup target add aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri -> target
+          cache-on-failure: true
       - name: Rust formatting
         run: cargo fmt --manifest-path desktop/src-tauri/Cargo.toml --check
       - run: npm run build
       - name: Native database, backup and lifecycle tests
-        run: cargo test --manifest-path desktop/src-tauri/Cargo.toml --locked
+        run: cargo test --manifest-path desktop/src-tauri/Cargo.toml --locked --release
       - name: Package installer
         run: ${{ matrix.bundle }}
       - name: Verify packaged Windows startup and database
@@ -84,6 +88,12 @@ jobs:
         with:
           name: installers-${{ matrix.platform }}
           path: release-assets/*
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: runner.os == 'Windows'
+        with:
+          name: windows-executable-for-validation
+          path: desktop/src-tauri/target/release/research-workbench.exe
           if-no-files-found: error
 
   release:

@@ -69,8 +69,17 @@ export class InMemoryWorkbenchRepository implements WorkbenchRepository {
     return clone(this.snapshot);
   }
 
+  private assertProjectChangeAllowed(previous: RecordItem | undefined, next: RecordItem): void {
+    if (!previous || (previous.workspaceId === next.workspaceId && previous.typeId === next.typeId)) return;
+    if (previous.workspaceId === next.workspaceId && this.snapshot.types.some((type) => type.id === next.typeId && type.kind === 'project')) return;
+    if (this.snapshot.records.some((record) => record.projectId === next.id)) {
+      throw new Error('此项目仍有关联记录（含回收站），请先解除关联，再移动工作区或更改类型');
+    }
+  }
+
   async saveRecord(record: RecordItem): Promise<void> {
     const index = this.snapshot.records.findIndex((item) => item.id === record.id);
+    this.assertProjectChangeAllowed(this.snapshot.records[index], record);
     if (index < 0) this.snapshot.records.push(clone(record));
     else this.snapshot.records[index] = clone(record);
     this.log(record, index < 0 ? 'created' : 'updated', record.updatedAt);
@@ -100,6 +109,7 @@ export class InMemoryWorkbenchRepository implements WorkbenchRepository {
     }
     const updatedAt = Date.now();
     const updated = records.map((record) => ({ ...record, ...(patch.workspaceId && patch.workspaceId !== record.workspaceId && patch.projectId === undefined ? { projectId: null } : {}), ...patch, updatedAt }));
+    for (let index = 0; index < updated.length; index++) this.assertProjectChangeAllowed(records[index], updated[index]);
     const byId = new Map(updated.map((record) => [record.id, record]));
     this.snapshot.records = this.snapshot.records.map((record) => clone(byId.get(record.id) ?? record));
     for (const record of updated) this.log(record, 'updated', updatedAt);
