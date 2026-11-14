@@ -1,0 +1,14 @@
+.workflow-panel { margin: 22px 0; }
+.workflow-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.workflow-link { padding: 16px; display: flex; flex-direction: column; gap: 8px; text-align: left; color: inherit; min-width: 0; }
+.workflow-link strong { overflow-wrap: anywhere; }
+.workflow-link > span { color: var(--muted); font-size: 12px; }
+.workflow-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
+.workflow-actions label { display: flex; align-items: center; gap: 8px; }
+.report-preview { padding: 24px; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.8; }
+.dashboard-statistics { margin-top: 28px; }
+.dashboard-statistics > summary { cursor: pointer; color: var(--muted); padding: 12px 0; }
+.load-more { margin: 18px auto; display: block; }
+.project-linked-records { margin-top: 12px; }
+.project-linked-records summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+.project-linked-records button { display: block; width: 100%; padding: 8px; border: 0; background: transparent; color: inherit; text-align: left; }

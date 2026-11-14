@@ -1,91 +1,26 @@
 {
   "name": "research-workbench",
+  "version": "2.0.0",
   "private": true,
-  "version": "1.0.11",
-  "type": "module",
-  "main": "electron/main.cjs",
-  "description": "Local-first Windows desktop workbench for research projects, tasks, schedules, and notes.",
-  "author": "Layman-art",
+  "description": "Research Workbench — one desktop codebase for Windows and macOS",
   "license": "MIT",
-  "copyright": "Copyright © 2026 Layman-art",
-  "homepage": "https://github.com/Layman-art/Research-Workbench#readme",
-  "bugs": {
-    "url": "https://github.com/Layman-art/Research-Workbench/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Layman-art/Research-Workbench.git"
-  },
+  "workspaces": [
+    "desktop"
+  ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "test": "vitest run",
-    "test:e2e": "playwright test",
-    "dev:electron": "concurrently -k \"npm:dev\" \"wait-on tcp:1430 && cross-env ELECTRON_START_URL=http://localhost:1430 electron .\"",
-    "dist": "npm run build && electron-builder",
-    "dist:portable": "npm run build && electron-builder --win portable"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.32.0",
-    "@fontsource/inter": "^5.1.0",
-    "@fontsource/noto-serif-sc": "^5.1.0",
-    "@fontsource/source-serif-4": "^5.1.0",
-    "@playwright/test": "^1.54.2",
-    "@testing-library/jest-dom": "^6.6.4",
-    "@testing-library/react": "^16.3.0",
-    "@types/node": "^24.1.0",
-    "@types/react": "^19.1.9",
-    "@types/react-dom": "^19.1.7",
-    "@vitejs/plugin-react": "^4.7.0",
-    "clsx": "^2.1.1",
-    "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3",
-    "electron": "43.4.0",
-    "electron-builder": "26.15.3",
-    "eslint": "^9.32.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.5.0",
-    "jsdom": "^26.1.0",
-    "lucide-react": "^0.468.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "typescript": "~5.8.3",
-    "typescript-eslint": "^8.38.0",
-    "vite": "^7.0.6",
-    "vitest": "^3.2.4",
-    "wait-on": "^8.0.1",
-    "zustand": "^5.0.7"
-  },
-  "build": {
-    "appId": "com.researchworkbench.app",
-    "productName": "Research Workbench",
-    "directories": { "output": "release" },
-    "files": ["dist", "electron", "package.json"],
-    "extraResources": [
-      { "from": "build/icon.ico", "to": "icon.ico" },
-      { "from": "LICENSE", "to": "LICENSE" },
-      { "from": "PRIVACY.md", "to": "PRIVACY.md" },
-      { "from": "THIRD_PARTY_NOTICES.md", "to": "THIRD_PARTY_NOTICES.md" },
-      { "from": "licenses", "to": "licenses" }
-    ],
-    "win": {
-      "target": ["nsis", "portable"],
-      "icon": "build/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "shortcutName": "Research Workbench",
-      "artifactName": "Research-Workbench-Setup-release-${arch}.${ext}"
-    },
-    "portable": {
-      "artifactName": "Research-Workbench-Portable-release-x64.${ext}"
-    }
+    "dev": "npm run dev --workspace @research-workbench/desktop",
+    "build": "npm run build --workspace @research-workbench/desktop",
+    "lint": "npm run lint --workspace @research-workbench/desktop",
+    "test": "npm run test --workspace @research-workbench/desktop",
+    "test:e2e": "npm run test:e2e --workspace @research-workbench/desktop",
+    "check": "npm run check --workspace @research-workbench/desktop",
+    "size": "npm run size --workspace @research-workbench/desktop",
+    "dev:desktop": "npm run dev:desktop --workspace @research-workbench/desktop",
+    "build:desktop": "npm run build:desktop --workspace @research-workbench/desktop",
+    "dist:win": "npm run dist:win --workspace @research-workbench/desktop",
+    "dist:mac": "npm run dist:mac --workspace @research-workbench/desktop"
   }
 }

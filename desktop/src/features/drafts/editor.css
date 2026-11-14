@@ -1,0 +1,22 @@
+.record-editor { width: min(920px, calc(100vw - 48px)); }
+.record-editor-expanded { width: calc(100vw - 32px); height: calc(100vh - 32px); max-height: calc(100vh - 32px); }
+.record-editor .editor-fields { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.record-editor .markdown-source { min-height: 300px; line-height: 1.8; resize: vertical; }
+.record-editor-expanded .markdown-source, .record-editor-expanded .markdown-preview { min-height: 50vh; }
+.editor-writing-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.editor-writing-toolbar > div { display: flex; gap: 8px; }
+.editor-properties { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.editor-properties > summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.editor-properties[open] > summary { margin-bottom: 16px; }
+.editor-properties > div { margin-top: 16px; }
+.editor-save-status { flex: 1 1 190px; color: var(--muted); font-size: 12px; }
+.record-editor .modal-foot { flex-wrap: wrap; }
+.editor-attachments { border-top: 1px solid var(--line); padding-top: 14px; }
+.editor-attachment { display: flex; align-items: center; gap: 10px; min-width: 0; margin-top: 8px; }
+.editor-attachment > span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-size: 12px; }
+.editor-attachment > .btn { max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 700px) {
+  .record-editor { width: calc(100vw - 16px); }
+  .editor-save-status { flex-basis: 100%; }
+  .record-editor .markdown-source { min-height: 240px; }
+}

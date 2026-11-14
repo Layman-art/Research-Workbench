@@ -1,0 +1,110 @@
+name: Desktop CI
+
+on:
+  push:
+    branches: [main, 'feat/**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm run size
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: browser-test-results
+          path: desktop/test-results
+          if-no-files-found: ignore
+
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+            bundle: npm run dist:win
+          - os: macos-15
+            platform: macos-arm64
+            bundle: npm run dist:mac --workspace @research-workbench/desktop -- --target aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      CARGO_INCREMENTAL: 0
+      RUST_BACKTRACE: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: rustup toolchain install stable --profile minimal --component rustfmt
+      - run: rustup default stable
+      - if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin
+      - name: Rust formatting
+        run: cargo fmt --manifest-path desktop/src-tauri/Cargo.toml --check
+      - run: npm run build
+      - name: Native database, backup and lifecycle tests
+        run: cargo test --manifest-path desktop/src-tauri/Cargo.toml --locked
+      - name: Package installer
+        run: ${{ matrix.bundle }}
+      - name: Verify packaged Windows startup and database
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./desktop/scripts/windows-smoke.ps1
+      - name: Collect installers
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          find desktop/src-tauri/target -path '*/bundle/*' -type f \( -name '*.exe' -o -name '*.dmg' \) -exec cp {} release-assets/ \;
+          node desktop/scripts/check-release-assets.mjs release-assets
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installers-${{ matrix.platform }}
+          path: release-assets/*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [frontend, native]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: installers-*
+          merge-multiple: true
+          path: release-assets
+      - name: Publish versioned release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cd release-assets
+          sha256sum *.exe *.dmg > SHA256SUMS.txt
+          cd ..
+          gh release create "$RELEASE_TAG" release-assets/* --verify-tag --title "Research Workbench $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"

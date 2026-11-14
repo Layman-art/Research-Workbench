@@ -1,0 +1,4 @@
+.feedback-toast { position: fixed; z-index: 250; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; max-width: min(90vw, 720px); padding: 12px 18px; background: var(--paper, #fffdf8); color: var(--ink); border: 1px solid var(--line, #d6cec0); box-shadow: 0 6px 30px #0002; border-radius: 12px; }
+.feedback-toast > span { overflow-wrap: anywhere; }
+.error-banner { position: fixed; z-index: 400; top: 38px; left: 50%; transform: translateX(-50%); max-width: 90vw; display: flex; align-items: center; gap: 16px; padding: 10px 18px; border: 1px solid #b34736; border-radius: 8px; color: #7e291b; background: #fff2e9; }
+.startup-screen .settings-section { text-align: left; max-height: 55vh; overflow: auto; max-width: 720px; }

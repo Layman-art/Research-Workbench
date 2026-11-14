@@ -24,7 +24,7 @@ scripts/verify-v*.cjs
 *.pfx
 *.p12
 research-workbench-backup-*.json
-backups/
+/backups/
 *.exe
 *.log
 Thumbs.db
